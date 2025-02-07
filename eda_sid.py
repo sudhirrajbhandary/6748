@@ -91,6 +91,36 @@ df_column = df_column.groupby(level=0).sum()
 df_column = df_column.drop('id', axis=1)
 movies_revenue = pd.concat([movies_revenue, df_column], axis=1)
 
+#languages
+allowed_languages = ['English','Spanish','French']
+
+#split languages
+#explode into one row per languages
+#only keep allowed languages
+#replace rest with 'other'
+df_column = (movies_revenue['spoken_languages'].str.split(',\s*').explode()
+             .apply(lambda x: x if x in allowed_languages else 'other'))
+
+#remove duplicate 'other' languages on same movie
+df_column = df_column.to_frame()
+df_column['id']=df_column.index
+df_column = df_column.drop_duplicates()
+df_column['id']=df_column.index
+df_column = df_column.drop('id', axis=1)
+
+#convert languages to categorical columns
+df_column = pd.get_dummies(df_column)
+df_column = df_column.groupby(level=0).sum()
+
+movies_revenue = pd.concat([movies_revenue, df_column], axis=1)
+
+#save languages into file
+'''
+df_column_sums = df_column.sum().T
+path_out = 'data/spoken_languages.csv'
+df_column_sums.sort_values(ascending=False).to_csv(path_out, index=True)
+'''
+
 #runtimeminutes
 
 #load lookup runtime file
@@ -101,6 +131,7 @@ lookup_runtime = lookup_runtime[['tconst','runtimeMinutes']]
 movies_revenue = pd.merge(movies_revenue, lookup_runtime, left_on='imdb_id', right_on='tconst', how='left')
 movies_revenue = movies_revenue.drop('tconst', axis=1)
 
+print(type(movies_revenue))
 print(movies_revenue.shape)
 
 path_out = 'data/output.csv'
