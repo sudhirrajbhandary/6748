@@ -121,6 +121,7 @@ path_out = 'data/spoken_languages.csv'
 df_column_sums.sort_values(ascending=False).to_csv(path_out, index=True)
 '''
 
+'''
 #runtimeminutes
 
 #load lookup runtime file
@@ -130,10 +131,35 @@ lookup_runtime = lookup_runtime[['tconst','runtimeMinutes']]
 
 movies_revenue = pd.merge(movies_revenue, lookup_runtime, left_on='imdb_id', right_on='tconst', how='left')
 movies_revenue = movies_revenue.drop('tconst', axis=1)
+'''
 
-print(type(movies_revenue))
-print(movies_revenue.shape)
+#get director and crew
+path_crew = 'data/title.crew.tsv'
+data_crew = pd.read_csv(path_crew, sep='\t') #reads data
+
+movies_revenue = pd.merge(movies_revenue, data_crew, left_on='imdb_id', right_on='tconst', how='left')
+movies_revenue = movies_revenue.drop('tconst', axis=1)
+
+movies_revenue[['director1', 'director2', 'director_remaining']] = movies_revenue['directors'].str.split(',', n=2, expand=True)
+
+path_name = 'data/name.basics.tsv'
+data_name = pd.read_csv(path_name, sep='\t') #reads data
+
+movies_revenue = pd.merge(movies_revenue, data_name, left_on='director1', right_on='nconst', how='left')
+#movies_revenue = movies_revenue.drop('nconst', axis=1)
+movies_revenue = movies_revenue.drop(columns=['nconst','birthYear','deathYear','primaryProfession','knownForTitles'], axis=1)
+movies_revenue.rename(columns={'primaryName': 'dir1Name'}, inplace=True)
+
+#print(movies_revenue.head(5))
+
+movies_revenue = pd.merge(movies_revenue, data_name, left_on='director2', right_on='nconst', how='left')
+movies_revenue = movies_revenue.drop(columns=['nconst','birthYear','deathYear','primaryProfession','knownForTitles'], axis=1)
+movies_revenue.rename(columns={'primaryName': 'dir2Name'}, inplace=True)
+#print(movies_revenue.head(5))
+
+#movies_revenue[['actor1', 'actor2', 'actor3','actor_remaining]] = movies_revenue['directors'].str.split(',', n=2, expand=True)
 
 path_out = 'data/output.csv'
 movies_revenue.to_csv(path_out, index=False)
+
 
