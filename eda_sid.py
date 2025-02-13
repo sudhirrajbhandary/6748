@@ -159,7 +159,20 @@ movies_revenue.rename(columns={'primaryName': 'dir2Name'}, inplace=True)
 
 #movies_revenue[['actor1', 'actor2', 'actor3','actor_remaining]] = movies_revenue['directors'].str.split(',', n=2, expand=True)
 
-path_out = 'data/output.csv'
+path_principles = 'data/title.principals.tsv'
+data_principles = pd.read_csv(path_principles, sep='\t') #reads data
+
+movies_revenue = pd.merge(movies_revenue, data_principles[data_principles['ordering']==1], left_on='imdb_id', right_on='tconst', how='left')
+movies_revenue = pd.merge(movies_revenue, data_name, left_on='nconst', right_on='nconst', how='left')
+movies_revenue = movies_revenue.drop(columns=['tconst','nconst','category','job','characters','birthYear','deathYear','primaryProfession','knownForTitles'], axis=1)
+movies_revenue.rename(columns={'primaryName': 'actor1Name'}, inplace=True)
+
+movies_revenue = pd.merge(movies_revenue, data_principles[data_principles['ordering']==2], left_on='imdb_id', right_on='tconst', how='left')
+movies_revenue = pd.merge(movies_revenue, data_name, left_on='nconst', right_on='nconst', how='left')
+movies_revenue = movies_revenue.drop(columns=['tconst','nconst','category','job','characters','birthYear','deathYear','primaryProfession','knownForTitles'], axis=1)
+movies_revenue.rename(columns={'primaryName': 'actor2Name'}, inplace=True)
+
+ path_out = 'data/output.csv'
 movies_revenue.to_csv(path_out, index=False)
 
 
